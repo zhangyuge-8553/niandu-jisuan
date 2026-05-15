@@ -226,7 +226,7 @@
         .components-grid { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 1rem; }
         .comp-card { background: #f9fbfd; border-radius: 1.3rem; padding: 0.8rem 1rem; border: 1px solid #e2edf2; }
 
-        /* ===== 恢复双组分反算的原生卡片样式（与黏度小工具完全一致）===== */
+        /* ===== 双组分反算的原生卡片样式（与黏度小工具完全一致）===== */
         .inverse-card {
             background: white;
             border-radius: 1.8rem;
@@ -301,6 +301,45 @@
             cursor: pointer;
         }
         .example-mini-btn:active { background: #e2ecf5; transform: scale(0.97); }
+
+        /* 密度计算子模块独立样式（完全保留原始v1样式） */
+        .density-subtabs {
+            display: flex;
+            gap: 0.5rem;
+            background: #f0f4f9;
+            padding: 0.3rem;
+            border-radius: 2rem;
+            margin-bottom: 1rem;
+        }
+        .subtab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 0.5rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 1.8rem;
+            cursor: pointer;
+            color: #2c5a7a;
+            transition: 0.2s;
+        }
+        .subtab-btn.active {
+            background: #1a5d85;
+            color: white;
+        }
+        .density-subpane {
+            display: none;
+        }
+        .density-subpane.active-sub {
+            display: block;
+        }
+        .calc-detail-text {
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: #2c5a7a;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -431,12 +470,12 @@
         </div>
     </div>
 
-    <!-- 面板3: 密度计算 (完整保留) -->
+    <!-- 面板3: 密度计算 (完整保留原始v1的样式与功能，包含三个子模式) -->
     <div id="panelDensity" class="tab-panel">
         <div class="card">
             <div class="card-header"><h2>⚖️ 基础油密度计算器</h2></div>
             <div class="card-body">
-                <div class="density-subtabs" style="display:flex; gap:0.5rem; background:#f0f4f9; padding:0.3rem; border-radius:2rem; margin-bottom:1rem;">
+                <div class="density-subtabs">
                     <button class="subtab-btn active" data-dsub="dMix">🧪 密度混合</button>
                     <button class="subtab-btn" data-dsub="dRatio">📐 比例计算</button>
                     <button class="subtab-btn" data-dsub="dUnknown">🔁 反推密度</button>
@@ -627,7 +666,7 @@
             setTimeout(calculateVI,100);
         })();
 
-        // ========== 3. 双组分反算模块 (完整保留原黏度小工具逻辑，仅包裹样式) ==========
+        // ========== 3. 双组分反算模块 ==========
         (function(){
             function computeC(visc){ if(visc<=0.4) return NaN; const inside=visc+0.6; const lnIn=Math.log(inside); if(lnIn<=0) return NaN; return Math.log(lnIn); }
             function viscosityFromC(cVal){ if(isNaN(cVal)) return NaN; return Math.exp(Math.exp(cVal))-0.6; }
@@ -722,7 +761,7 @@
             computeTBN(); computeAsh();
         })();
 
-        // ========== 密度计算模块 ==========
+        // ========== 密度计算模块 (完全保留原始v1样式与功能) ==========
         (function(){
             const subBtns=document.querySelectorAll('.subtab-btn'); const subPanes=document.querySelectorAll('.density-subpane');
             subBtns.forEach(btn=>{ btn.addEventListener('click',()=>{ let target=btn.getAttribute('data-dsub'); subBtns.forEach(b=>b.classList.remove('active')); btn.classList.add('active'); subPanes.forEach(p=>p.classList.remove('active-sub')); document.getElementById(target).classList.add('active-sub'); }); });
