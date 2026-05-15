@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>润滑油工艺计算平台 | 黏度·VI·碱值·密度</title>
+    <title>润滑油工艺助手 | 黏度·碱值灰分·密度</title>
     <style>
         * {
             margin: 0;
@@ -13,10 +13,10 @@
         }
 
         body {
-            background: #f4f7fb;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #eef2f8;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             padding: 0.75rem 0.8rem 2rem;
-            color: #1e2f3e;
+            color: #1a2c3e;
         }
 
         .app-main {
@@ -24,7 +24,7 @@
             margin: 0 auto;
         }
 
-        /* 一级Tab栏 */
+        /* 一级Tab栏 (3个大面板) */
         .primary-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -50,7 +50,7 @@
             color: #2c5a7a;
             text-align: center;
             white-space: nowrap;
-            min-width: 88px;
+            min-width: 100px;
         }
 
         .primary-tab.active {
@@ -59,7 +59,7 @@
             box-shadow: 0 4px 10px rgba(26,93,133,0.2);
         }
 
-        /* 面板容器 */
+        /* 一级面板容器 */
         .tab-panel {
             display: none;
             animation: fade 0.2s ease;
@@ -72,13 +72,13 @@
             to { opacity: 1; transform: translateY(0);}
         }
 
-        /* 通用卡片 + 移动优化 */
+        /* 通用卡片样式 */
         .card {
             background: white;
             border-radius: 1.8rem;
             box-shadow: 0 8px 20px rgba(0,0,0,0.05);
             overflow: hidden;
-            margin-bottom: 0.5rem;
+            margin-bottom: 1rem;
         }
         .card-header {
             background: #0f3b5c;
@@ -97,16 +97,16 @@
             padding: 1.2rem;
         }
 
-        /* 二级Tab (密度子模式) */
-        .density-subtabs {
+        /* 二级Tab (黏度计算内部的子模式) */
+        .sub-tabs {
             display: flex;
             gap: 0.5rem;
             background: #f0f4f9;
             padding: 0.3rem;
             border-radius: 2rem;
-            margin-bottom: 1rem;
+            margin-bottom: 1.2rem;
         }
-        .subtab-btn {
+        .sub-tab-btn {
             flex: 1;
             background: transparent;
             border: none;
@@ -118,15 +118,14 @@
             color: #2c5a7a;
             transition: 0.2s;
         }
-        .subtab-btn.active {
+        .sub-tab-btn.active {
             background: #1a5d85;
             color: white;
         }
-
-        .density-subpane {
+        .sub-pane {
             display: none;
         }
-        .density-subpane.active-sub {
+        .sub-pane.active-sub {
             display: block;
         }
 
@@ -199,7 +198,7 @@
         }
         .mix-table {
             width: 100%;
-            min-width: 400px;
+            min-width: 420px;
             border-collapse: collapse;
             font-size: 0.7rem;
         }
@@ -215,138 +214,229 @@
         }
         @media (max-width: 560px) {
             .grid-2col { grid-template-columns: 1fr; }
-            .primary-tab { white-space: normal; font-size: 0.75rem; min-width: 70px; }
-        }
-        .inline-code {
-            font-family: monospace;
-            font-weight: bold;
+            .primary-tab { white-space: normal; font-size: 0.75rem; min-width: 80px; }
         }
         .value-large {
             font-size: 1.8rem;
             font-weight: 800;
             color: #0a3146;
         }
-        hr {
-            margin: 0.8rem 0;
-            border-color: #e2edf2;
+        .mix-row { background: #eef3f9; font-weight: 700; }
+        .info-note { font-size: 0.68rem; color: #5a7c9a; text-align: center; margin-top: 0.8rem; padding-top: 0.6rem; border-top: 1px solid #d9e6f0; }
+        .components-grid { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 1rem; }
+        .comp-card { background: #f9fbfd; border-radius: 1.3rem; padding: 0.8rem 1rem; border: 1px solid #e2edf2; }
+
+        /* ===== 恢复双组分反算的原生卡片样式（与黏度小工具完全一致）===== */
+        .inverse-card {
+            background: white;
+            border-radius: 1.8rem;
+            box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 0;
         }
-        .calc-detail-text {
+        .inverse-header {
+            background: #2c5a6e;
+            color: white;
+            padding: 1rem 1.2rem;
+        }
+        .inverse-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 0;
+        }
+        .inverse-header small {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-weight: normal;
+        }
+        .inverse-sub {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 0.2rem;
+        }
+        .inverse-body {
+            padding: 1.2rem 1rem;
+        }
+        .inverse-result {
+            background: #eef2fa;
+            border-radius: 1.3rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid #cde0ec;
+        }
+        .inverse-footer {
+            background: #f9fbfd;
+            padding: 0.6rem 1rem;
+            font-size: 0.65rem;
+            color: #6f8eab;
+            text-align: center;
+            border-top: 1px solid #e2edf2;
+        }
+        .inv-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed #c0d4e4;
+            flex-wrap: wrap;
+        }
+        .inv-label { font-weight: 700; color: #1a4d6f; }
+        .inv-value { font-family: monospace; font-weight: 800; font-size: 1rem; color: #0f3b5c; }
+        .verify-pass { color: #15803d; background: #e0f2e9; border-radius: 1rem; padding: 0.1rem 0.5rem; display: inline-block; font-size: 0.7rem; margin-left: 6px; }
+        .example-mini-btn {
+            background: #eef2f7;
+            border: 1px solid #cbdbe6;
+            color: #1e5a7a;
+            margin-top: 0.5rem;
             font-size: 0.75rem;
-            line-height: 1.5;
-            color: #2c5a7a;
-            white-space: pre-wrap;
-            font-family: monospace;
+            padding: 0.5rem;
+            width: 100%;
+            border-radius: 2rem;
+            font-weight: 500;
+            cursor: pointer;
         }
+        .example-mini-btn:active { background: #e2ecf5; transform: scale(0.97); }
     </style>
 </head>
 <body>
 <div class="app-main">
-    <!-- 一级 Tab 栏 -->
+    <!-- 一级 Tab 栏: 三个独立面板 -->
     <div class="primary-tabs">
-        <button class="primary-tab active" data-panel="panelBlend">📊 运动黏度计算</button>
-        <button class="primary-tab" data-panel="panelVI">📈 黏度指数计算</button>
-        <button class="primary-tab" data-panel="panelViscTemp">🌡️ 黏温计算</button>
-        <button class="primary-tab" data-panel="panelBaseAsh">🧪 碱值·灰分</button>
+        <button class="primary-tab active" data-panel="panelVisc">📊 黏度计算</button>
+        <button class="primary-tab" data-panel="panelBaseAsh">🧪 碱值及灰分计算</button>
         <button class="primary-tab" data-panel="panelDensity">⚖️ 密度计算</button>
     </div>
 
-    <!-- 面板1: 运动黏度计算 (混合黏度模型 ASTM D341) -->
-    <div id="panelBlend" class="tab-panel active-panel">
+    <!-- 面板1: 黏度计算 (内部二级子模式: 混合黏度、黏度指数VI、双组分反算) -->
+    <div id="panelVisc" class="tab-panel active-panel">
         <div class="card">
-            <div class="card-header"><h2>🧪 多组分混合黏度 · ASTM D341</h2></div>
+            <div class="card-header"><h2>📐 黏度综合计算</h2></div>
             <div class="card-body">
-                <div id="componentsGrid" class="components-grid" style="display:grid; gap:0.8rem; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); margin-bottom:1rem;"></div>
-                <div class="btn-group">
-                    <button class="btn" id="loadExampleBtn">📋 载入示例</button>
-                    <button class="btn" id="resetBlendBtn">🔄 清空</button>
-                    <button class="btn btn-primary" id="calcBlendBtn">⚡ 计算混合黏度</button>
+                <!-- 二级选项卡 -->
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn active" data-sub="blendSub">🧪 混合黏度</button>
+                    <button class="sub-tab-btn" data-sub="viSub">📈 黏度指数 VI</button>
+                    <button class="sub-tab-btn" data-sub="inverseSub">⚖️ 双组分反算</button>
+                </div>
+
+                <!-- 子面板1: 混合黏度 (完整保留) -->
+                <div id="blendSub" class="sub-pane active-sub">
+                    <div style="margin-bottom: 0.5rem; font-size:0.75rem; color:#3e6d8c;">🔧 基于ASTM D341双对数模型，最多支持5组分混合</div>
+                    <div id="componentsGrid" class="components-grid"></div>
+                    <div class="btn-group">
+                        <button class="btn" id="loadExampleBtn">📋 载入示例</button>
+                        <button class="btn" id="resetBlendBtn">🔄 清空</button>
+                        <button class="btn btn-primary" id="calcBlendBtn">⚡ 计算混合黏度</button>
+                    </div>
+                    <div class="result-area">
+                        <div class="grid-2col" style="margin-bottom:0.5rem;">
+                            <div><span style="font-weight:600;">混合运动黏度</span><br><span id="finalViscosity" class="value-large">—</span> cSt</div>
+                            <div><span style="font-weight:600;">总重量份</span><br><span id="totalWeight" style="font-size:1.4rem;font-weight:800;">0.00</span></div>
+                        </div>
+                        <div class="scroll-table"><table class="mix-table" id="mixTable"><thead><tr><th>组分</th><th>重量份</th><th>黏度cSt</th><th>比例</th><th>C因子</th></thead><tbody id="tableBody"><tr><td colspan="5">点击计算或载入示例</td></tr></tbody></table></div>
+                        <div>混合C值: <strong id="mixC_span">—</strong></div>
+                        <div id="blendWarningMsg" class="warning-note" style="display:none;"></div>
+                        <div class="info-note">※ C<sub>mix</sub>=Σ(质量比例×LN(LN(ν+0.6)))，混合黏度=EXP(EXP(C<sub>mix</sub>))-0.6</div>
+                    </div>
+                </div>
+
+                <!-- 子面板2: 黏度指数 VI (完整保留) -->
+                <div id="viSub" class="sub-pane">
+                    <div class="input-row"><label>🔹 运动粘度 @ 40°C (U) (cSt)</label><input type="text" inputmode="decimal" id="v40" class="input-field" placeholder="例: 73.30"></div>
+                    <div class="input-row"><label>🔸 运动粘度 @ 100°C (Y) (cSt)</label><input type="text" inputmode="decimal" id="v100" class="input-field" placeholder="例: 8.86"></div>
+                    <div class="btn-group"><button class="btn btn-primary" id="calcViBtn">📐 计算粘度指数</button><button class="btn" id="exampleViBtn">📋 填充典型示例</button></div>
+                    <div id="viErrorBox" class="warning-note" style="display:none; background:#ffebee; color:#b00020;"></div>
+                    <div id="viResultBox" class="result-area" style="display:none;">
+                        <div>精确VI: <strong id="exactVI">—</strong></div>
+                        <div>最终VI(银行家舍入): <strong id="finalVI">—</strong></div>
+                        <div>计算方法: <span id="methodBadge">—</span></div>
+                        <div id="intermediateNote" style="font-size:0.7rem;"></div>
+                    </div>
+                </div>
+
+                <!-- 子面板3: 双组分反算 (恢复原始卡片样式，功能不变) -->
+                <div id="inverseSub" class="sub-pane">
+                    <div class="inverse-card">
+                        <div class="inverse-header">
+                            <h2>🎯 双组分比例反算器 <small>ASTM D341 模型</small></h2>
+                            <div class="inverse-sub">已知两种基础油黏度及目标混合黏度 → 求解质量比例，并支持自定义总份数</div>
+                        </div>
+                        <div class="inverse-body">
+                            <div class="input-row"><label>🔹 基础油 A 黏度 ν_A (cSt)</label><input type="number" id="invViscA" step="any" placeholder="例如 30" value="30" class="input-field"></div>
+                            <div class="input-row"><label>🔸 基础油 B 黏度 ν_B (cSt)</label><input type="number" id="invViscB" step="any" placeholder="例如 80" value="80" class="input-field"></div>
+                            <div class="input-row"><label>🎯 目标混合黏度 ν_target (cSt)</label><input type="number" id="invTarget" step="any" placeholder="例如 68" value="68" class="input-field"></div>
+                            <div class="input-row"><label>📦 总重量份 (可自由调节) <span style="font-weight:normal;">例: 100 / 80 / 75</span></label><input type="number" id="totalPartsInput" step="any" placeholder="总份数" value="100" class="input-field"></div>
+                            <button class="btn btn-primary" id="calcInverseBtn" style="width:100%; background:#2c5a6e;">⚡ 计算质量比例 & 配比</button>
+                            <button class="example-mini-btn" id="quickExampleInvBtn" style="margin-top:8px; width:100%;">📋 载入示例(νA=30, νB=80, 目标68, 总份80)</button>
+                            
+                            <div id="inverseResultArea" class="inverse-result">
+                                <div class="inv-row"><span class="inv-label">📊 组分 A 质量分数 (xA)</span><span class="inv-value" id="ratioA">—</span></div>
+                                <div class="inv-row"><span class="inv-label">📊 组分 B 质量分数 (xB)</span><span class="inv-value" id="ratioB">—</span></div>
+                                <div class="inv-row"><span class="inv-label">⚖️ 当前总份数下的重量配比</span><span class="inv-value" id="weightAdvice">—</span></div>
+                                <div class="inv-row"><span class="inv-label">✅ 验证混合黏度 (基于上述比例)</span><span class="inv-value" id="checkVisc">—</span></div>
+                                <div class="inv-row"><span class="inv-label">🔍 与目标黏度偏差</span><span class="inv-value" id="deviationDisplay">—</span></div>
+                                <div id="invWarning" class="warning-note" style="margin-top: 12px; display: none;"></div>
+                            </div>
+                            <div class="info-note" style="margin-top: 12px;">
+                                📐 基于 ASTM D341 双对数线性插值（二分法精确求解）。改变“总重量份”会自动更新配比与验证结果，无需重新计算。
+                            </div>
+                        </div>
+                        <div class="inverse-footer">质量分数 xA = wA/(wA+wB)，总份可任意设定，比例保持不变。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 面板2: 碱值及灰分计算 (完整保留) -->
+    <div id="panelBaseAsh" class="tab-panel">
+        <div class="card">
+            <div class="card-header"><h2>🧪 碱值调整 (TBN)</h2></div>
+            <div class="card-body">
+                <div class="grid-2col">
+                    <div><label>罐内油品重量 (吨)</label><input type="text" inputmode="decimal" id="tbn_tankWt" class="input-field" value="67.274"></div>
+                    <div><label>罐内当前碱值 (mgKOH/g)</label><input type="text" inputmode="decimal" id="tbn_current" class="input-field" value="12"></div>
+                    <div><label>新油碱值 (mgKOH/g)</label><input type="text" inputmode="decimal" id="tbn_newOil" class="input-field" value="0.435"></div>
+                    <div><label>目标碱值 (mgKOH/g)</label><input type="text" inputmode="decimal" id="tbn_target" class="input-field" value="4.25"></div>
                 </div>
                 <div class="result-area">
-                    <div class="grid-2col" style="margin-bottom:0.5rem;">
-                        <div><span style="font-weight:600;">混合运动黏度</span><br><span id="finalViscosity" class="value-large">—</span> cSt</div>
-                        <div><span style="font-weight:600;">总重量份</span><br><span id="totalWeight" style="font-size:1.4rem;font-weight:800;">0.00</span></div>
-                    </div>
-                    <div class="scroll-table"><table class="mix-table" id="mixTable"><thead><tr><th>组分</th><th>重量份</th><th>黏度cSt</th><th>比例</th><th>C因子</th></thead><tbody id="tableBody"><tr><td colspan="5">点击计算</td></tr></tbody></table></div>
-                    <div>混合C值: <strong id="mixC_span">—</strong></div>
-                    <div id="blendWarningMsg" class="warning-note" style="display:none;"></div>
-                    <div class="info-note" style="font-size:0.68rem; margin-top:0.5rem;">※ C<sub>mix</sub>=Σ(质量比例×LN(LN(ν+0.6)))，混合黏度=EXP(EXP(C<sub>mix</sub>))-0.6</div>
+                    <div>新油加入量: <strong id="tbn_addQty">-- 吨</strong></div>
+                    <div>新油百分数: <strong id="tbn_percent">-- %</strong></div>
+                    <div>混合后验算: <strong id="tbn_verify">-- mgKOH/g</strong></div>
+                    <div id="tbn_warning" class="warning-note" style="display:none;"></div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- 面板2: 黏度指数计算 ASTM D2270 (完整表修复) -->
-    <div id="panelVI" class="tab-panel">
-        <div class="card">
-            <div class="card-header"><h2>📐 黏度指数 (VI) · ASTM D2270</h2></div>
+        <div class="card" style="margin-top:1rem;">
+            <div class="card-header"><h2>🔥 灰分调整 (wt%)</h2></div>
             <div class="card-body">
-                <div class="input-row"><label>🔹 运动粘度 @ 40°C (U) (cSt)</label><input type="text" inputmode="decimal" id="v40" class="input-field" placeholder="例: 73.30"></div>
-                <div class="input-row"><label>🔸 运动粘度 @ 100°C (Y) (cSt)</label><input type="text" inputmode="decimal" id="v100" class="input-field" placeholder="例: 8.86"></div>
-                <div class="btn-group"><button class="btn btn-primary" id="calcViBtn">📐 计算粘度指数</button><button class="btn" id="exampleViBtn">📋 填充典型示例</button></div>
-                <div id="viErrorBox" class="warning-note" style="display:none; background:#ffebee; color:#b00020;"></div>
-                <div id="viResultBox" class="result-area" style="display:none;">
-                    <div>精确VI: <strong id="exactVI">—</strong></div>
-                    <div>最终VI(银行家舍入): <strong id="finalVI">—</strong></div>
-                    <div>计算方法: <span id="methodBadge">—</span></div>
-                    <div id="intermediateNote" style="font-size:0.7rem;"></div>
+                <div class="grid-2col">
+                    <div><label>罐内油品重量 (吨)</label><input type="text" inputmode="decimal" id="ash_tankWt" class="input-field" value="100.555"></div>
+                    <div><label>罐内当前灰分 (%)</label><input type="text" inputmode="decimal" id="ash_current" class="input-field" value="1.11"></div>
+                    <div><label>新油灰分 (%)</label><input type="text" inputmode="decimal" id="ash_newOil" class="input-field" value="0"></div>
+                    <div><label>目标灰分 (%)</label><input type="text" inputmode="decimal" id="ash_target" class="input-field" value="0.97"></div>
+                </div>
+                <div class="result-area">
+                    <div>新油加入量: <strong id="ash_addQty">-- 吨</strong></div>
+                    <div>新油百分数: <strong id="ash_percent">-- %</strong></div>
+                    <div>混合后验算: <strong id="ash_verify">-- %</strong></div>
+                    <div id="ash_warning" class="warning-note" style="display:none;"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 面板3: 黏温计算 (ASTM D341双点定线) -->
-    <div id="panelViscTemp" class="tab-panel">
-        <div class="card">
-            <div class="card-header"><h2>🌡️ 黏温关系 · ASTM D341</h2></div>
-            <div class="card-body">
-                <div class="grid-2col" style="gap:1rem;">
-                    <div><label>温度1 (°C)</label><input type="text" inputmode="decimal" id="temp1" class="input-field" value="40"></div>
-                    <div><label>黏度1 (cSt)</label><input type="text" inputmode="decimal" id="visc1" class="input-field" value="100"></div>
-                    <div><label>温度2 (°C)</label><input type="text" inputmode="decimal" id="temp2" class="input-field" value="100"></div>
-                    <div><label>黏度2 (cSt)</label><input type="text" inputmode="decimal" id="visc2" class="input-field" value="10"></div>
-                </div>
-                <div style="display:flex; gap:0.8rem; margin:1rem 0; flex-wrap:wrap; background:#eef2f8; border-radius:2rem; padding:0.3rem;">
-                    <button class="btn mode-vt-btn active" data-vt-mode="tempToVisc" style="flex:1;">🔁 给定温度 → 求黏度</button>
-                    <button class="btn mode-vt-btn" data-vt-mode="viscToTemp" style="flex:1;">🌡️ 给定黏度 → 求温度</button>
-                </div>
-                <div id="vtTargetArea">
-                    <div id="vtTempToViscPanel"><div class="input-row"><label>目标温度 (°C)</label><input type="text" inputmode="decimal" id="targetTemp" class="input-field" value="60"></div></div>
-                    <div id="vtViscToTempPanel" style="display:none;"><div class="input-row"><label>目标黏度 (cSt)</label><input type="text" inputmode="decimal" id="targetVisc" class="input-field" value="25"></div></div>
-                </div>
-                <button class="btn btn-primary" id="calcVtBtn" style="width:100%;">⚡ 计算第三个值 (ASTM D341)</button>
-                <div id="vtErrorMsg" class="warning-note" style="display:none;"></div>
-                <div id="vtResultBox" class="result-area" style="margin-top:1rem;">
-                    <div><strong>计算结果:</strong> <span id="vtResultValue" class="value-large" style="font-size:1.6rem;">—</span></div>
-                    <div id="vtExtraInfo" style="font-size:0.7rem; margin-top:6px;"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 面板4: 碱值·灰分调整 (修复显示问题) -->
-    <div id="panelBaseAsh" class="tab-panel">
-        <div class="card"><div class="card-header"><h2>🧪 碱值调整 (TBN)</h2></div><div class="card-body">
-            <div class="grid-2col"><div><label>罐内油品重量 (吨)</label><input type="text" inputmode="decimal" id="tbn_tankWt" class="input-field" value="67.274"></div>
-            <div><label>罐内当前碱值 (mgKOH/g)</label><input type="text" inputmode="decimal" id="tbn_current" class="input-field" value="12"></div>
-            <div><label>新油碱值 (mgKOH/g)</label><input type="text" inputmode="decimal" id="tbn_newOil" class="input-field" value="0.435"></div>
-            <div><label>目标碱值 (mgKOH/g)</label><input type="text" inputmode="decimal" id="tbn_target" class="input-field" value="4.25"></div></div>
-            <div class="result-area"><div>新油加入量: <strong id="tbn_addQty">-- 吨</strong></div><div>新油百分数: <strong id="tbn_percent">-- %</strong></div><div>混合后验算: <strong id="tbn_verify">-- mgKOH/g</strong></div><div id="tbn_warning" class="warning-note" style="display:none;"></div></div>
-        </div></div>
-        <div class="card" style="margin-top:1rem;"><div class="card-header"><h2>🔥 灰分调整 (wt%)</h2></div><div class="card-body">
-            <div class="grid-2col"><div><label>罐内油品重量 (吨)</label><input type="text" inputmode="decimal" id="ash_tankWt" class="input-field" value="100.555"></div>
-            <div><label>罐内当前灰分 (%)</label><input type="text" inputmode="decimal" id="ash_current" class="input-field" value="1.11"></div>
-            <div><label>新油灰分 (%)</label><input type="text" inputmode="decimal" id="ash_newOil" class="input-field" value="0"></div>
-            <div><label>目标灰分 (%)</label><input type="text" inputmode="decimal" id="ash_target" class="input-field" value="0.97"></div></div>
-            <div class="result-area"><div>新油加入量: <strong id="ash_addQty">-- 吨</strong></div><div>新油百分数: <strong id="ash_percent">-- %</strong></div><div>混合后验算: <strong id="ash_verify">-- %</strong></div><div id="ash_warning" class="warning-note" style="display:none;"></div></div>
-        </div></div>
-    </div>
-
-    <!-- 面板5: 密度计算 (三合一 + 二级子选项卡) -->
+    <!-- 面板3: 密度计算 (完整保留) -->
     <div id="panelDensity" class="tab-panel">
         <div class="card">
             <div class="card-header"><h2>⚖️ 基础油密度计算器</h2></div>
             <div class="card-body">
-                <div class="density-subtabs">
+                <div class="density-subtabs" style="display:flex; gap:0.5rem; background:#f0f4f9; padding:0.3rem; border-radius:2rem; margin-bottom:1rem;">
                     <button class="subtab-btn active" data-dsub="dMix">🧪 密度混合</button>
                     <button class="subtab-btn" data-dsub="dRatio">📐 比例计算</button>
                     <button class="subtab-btn" data-dsub="dUnknown">🔁 反推密度</button>
@@ -388,475 +478,264 @@
 </div>
 
 <script>
-    // --------------------------------- 一级Tab切换 ---------------------------------
     (function() {
-        const tabs = document.querySelectorAll('.primary-tab');
+        // ======================= 一级Tab切换 =======================
+        const primaryTabs = document.querySelectorAll('.primary-tab');
         const panels = document.querySelectorAll('.tab-panel');
-        tabs.forEach(btn => {
+        primaryTabs.forEach(btn => {
             btn.addEventListener('click', () => {
                 const target = btn.getAttribute('data-panel');
-                tabs.forEach(b => b.classList.remove('active'));
+                primaryTabs.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 panels.forEach(p => p.classList.remove('active-panel'));
                 document.getElementById(target).classList.add('active-panel');
             });
         });
-    })();
 
-    // ========================= 1. 运动黏度混合模块 (原黏度小工具混合部分) =========================
-    (function blendModule() {
-        let weightInputs = [], viscInputs = [];
-        const defaultWeights = [20,20,20,10,30];
-        const defaultViscs = [15,25,35,45,45];
-        function computeCValue(v) { if(v<=0.4) return NaN; return Math.log(Math.log(v+0.6)); }
-        function viscosityFromC(c) { if(isNaN(c)) return NaN; return Math.exp(Math.exp(c))-0.6; }
-        function calculateBlend(weights, viscosities) {
-            let totalW = weights.reduce((s,w)=> s+(w>0?w:0),0);
-            if(totalW===0) return {valid:false, errorMsg:"总重量为零", totalWeight:0};
-            let sumC=0, details=[], hasInvalid=false, errMsg="";
-            for(let i=0;i<weights.length;i++){
-                let w=weights[i], v=viscosities[i];
-                let ratio = totalW>0? w/totalW:0;
-                let cVal=null, cValid=false;
-                if(w>0){
-                    if(v>0.4){
-                        cVal=computeCValue(v);
-                        if(isFinite(cVal)){ cValid=true; sumC+=ratio*cVal; }
-                        else { hasInvalid=true; errMsg=`组分${i+1}黏度无效`; }
-                    } else { hasInvalid=true; errMsg=`组分${i+1}黏度≤0.4`; }
-                }
-                details.push({weight:w, visc:v, ratio, cValue:cVal, cValid});
-            }
-            if(hasInvalid) return {valid:false, errorMsg:errMsg, totalWeight:totalW, mixC:NaN, mixViscosity:NaN, details, sumRatios:1};
-            let mixC=sumC;
-            let mixVisc=viscosityFromC(mixC);
-            return {valid:isFinite(mixVisc), mixViscosity:mixVisc, mixC, totalWeight:totalW, details, sumRatios:1, errorMsg:""};
-        }
-        function renderUI() {
-            const grid = document.getElementById('componentsGrid');
-            if(!grid) return;
-            grid.innerHTML='';
-            weightInputs=[]; viscInputs=[];
-            for(let i=0;i<5;i++){
-                const card = document.createElement('div');
-                card.className = 'comp-card';
-                card.style.background='#f9fbfd'; card.style.padding='0.8rem'; card.style.borderRadius='1.2rem'; card.style.border='1px solid #e2edf2';
-                card.innerHTML = `<div style="font-weight:700; margin-bottom:6px;">📌 组分 ${i+1}</div>
-                    <div class="input-row"><label>重量 (份)</label><input type="text" inputmode="decimal" id="weight_${i}" class="input-field" placeholder="例如20"></div>
-                    <div class="input-row"><label>黏度 ν (cSt)</label><input type="text" inputmode="decimal" id="visc_${i}" class="input-field" placeholder=">0.4"></div>`;
-                grid.appendChild(card);
-                weightInputs.push(card.querySelector(`#weight_${i}`));
-                viscInputs.push(card.querySelector(`#visc_${i}`));
-            }
-        }
-        function getValues() { let w=[],v=[]; for(let i=0;i<5;i++){ w.push(parseFloat(weightInputs[i]?.value)||0); v.push(parseFloat(viscInputs[i]?.value)||0); } return {weights:w, viscosities:v}; }
-        function performCalc(){
-            const {weights, viscosities}=getValues();
-            const res = calculateBlend(weights, viscosities);
-            document.getElementById('totalWeight').innerText = res.totalWeight.toFixed(4);
-            document.getElementById('finalViscosity').innerText = res.valid ? res.mixViscosity.toFixed(4) : '—';
-            document.getElementById('mixC_span').innerText = (res.valid && !isNaN(res.mixC))? res.mixC.toFixed(6):'—';
-            const warnDiv = document.getElementById('blendWarningMsg');
-            if(!res.valid || res.totalWeight===0){ warnDiv.style.display='block'; warnDiv.innerText=res.errorMsg||'计算无效'; }
-            else warnDiv.style.display='none';
-            const tbody=document.getElementById('tableBody');
-            if(!res.details){ tbody.innerHTML='<tr><td colspan="5">无数据</td></tr>'; return; }
-            let html='';
-            for(let i=0;i<res.details.length;i++){
-                let d=res.details[i];
-                let ratioP = (d.ratio*100).toFixed(2)+'%';
-                let cDisp = d.cValid ? d.cValue?.toFixed(6):'—';
-                html+=`<tr><td>组分 ${i+1}</td><td>${d.weight.toFixed(4)}</td><td>${d.visc.toFixed(4)}</td><td>${ratioP}</td><td>${cDisp}</td></tr>`;
-            }
-            html+=`<tr style="background:#eef3f9;"><td colspan="3">质量比例总和</td><td colspan="2">${(res.sumRatios).toFixed(6)}</td></tr>`;
-            tbody.innerHTML=html;
-        }
-        function loadExample(){ for(let i=0;i<5;i++){ weightInputs[i].value=defaultWeights[i]; viscInputs[i].value=defaultViscs[i]; } performCalc(); }
-        function resetForm(){ for(let i=0;i<5;i++){ weightInputs[i].value=''; viscInputs[i].value=''; } document.getElementById('totalWeight').innerText='0.00'; document.getElementById('finalViscosity').innerText='—'; document.getElementById('mixC_span').innerText='—'; document.getElementById('blendWarningMsg').style.display='none'; document.getElementById('tableBody').innerHTML='<tr><td colspan="5">清空完成</td></tr>'; }
-        renderUI();
-        document.getElementById('calcBlendBtn')?.addEventListener('click',performCalc);
-        document.getElementById('resetBlendBtn')?.addEventListener('click',resetForm);
-        document.getElementById('loadExampleBtn')?.addEventListener('click',loadExample);
-        setTimeout(()=>{ loadExample(); },60);
-    })();
-
-    // ========================= 2. 黏度指数模块 (完整ASTM D2270表) =========================
-    (function(){
-        // 完整 ASTM D2270 表 (Y从2.0 到 70.0，步长0.1或变步长，原工具完整数据)
-        const fullTable = [
-            [2.00, 7.994, 6.394], [2.10, 8.640, 6.894], [2.20, 9.309, 7.410], [2.30, 10.00, 7.944],
-            [2.40, 10.71, 8.496], [2.50, 11.45, 9.063], [2.60, 12.21, 9.647], [2.70, 13.00, 10.25],
-            [2.80, 13.80, 10.87], [2.90, 14.63, 11.50], [3.00, 15.49, 12.15], [3.10, 16.36, 12.82],
-            [3.20, 17.26, 13.51], [3.30, 18.18, 14.21], [3.40, 19.12, 14.93], [3.50, 20.09, 15.66],
-            [3.60, 21.08, 16.42], [3.70, 22.09, 17.19], [3.80, 23.13, 17.97], [3.90, 24.19, 18.77],
-            [4.00, 25.32, 19.56], [4.10, 26.50, 20.37], [4.20, 27.75, 21.21], [4.30, 29.07, 22.05],
-            [4.40, 30.48, 22.92], [4.50, 31.96, 23.81], [4.60, 33.52, 24.71], [4.70, 35.13, 25.63],
-            [4.80, 36.79, 26.57], [4.90, 38.50, 27.53], [5.00, 40.23, 28.49], [5.10, 41.99, 29.46],
-            [5.20, 43.76, 30.43], [5.30, 45.53, 31.40], [5.40, 47.31, 32.37], [5.50, 49.09, 33.34],
-            [5.60, 50.87, 34.32], [5.70, 52.64, 35.29], [5.80, 54.42, 36.26], [5.90, 56.20, 37.23],
-            [6.00, 57.97, 38.19], [6.10, 59.74, 39.17], [6.20, 61.52, 40.15], [6.30, 63.32, 41.13],
-            [6.40, 65.18, 42.14], [6.50, 67.12, 43.18], [6.60, 69.16, 44.24], [6.70, 71.29, 45.33],
-            [6.80, 73.48, 46.44], [6.90, 75.72, 47.51], [7.00, 78.00, 48.57], [7.10, 80.25, 49.61],
-            [7.20, 82.39, 50.69], [7.30, 84.53, 51.78], [7.40, 86.66, 52.88], [7.50, 88.85, 53.98],
-            [7.60, 91.04, 55.09], [7.70, 93.20, 56.20], [7.80, 95.43, 57.31], [7.90, 97.72, 58.45],
-            [8.00, 100.0, 59.60], [8.10, 102.3, 60.74], [8.20, 104.6, 61.89], [8.30, 106.9, 63.05],
-            [8.40, 109.2, 64.18], [8.50, 111.5, 65.32], [8.60, 113.9, 66.48], [8.70, 116.2, 67.64],
-            [8.80, 118.5, 68.79], [8.90, 120.9, 69.94], [9.00, 123.3, 71.10], [9.10, 125.7, 72.27],
-            [9.20, 128.0, 73.42], [9.30, 130.4, 74.57], [9.40, 132.8, 75.73], [9.50, 135.3, 76.91],
-            [9.60, 137.7, 78.08], [9.70, 140.1, 79.27], [9.80, 142.7, 80.46], [9.90, 145.2, 81.67],
-            [10.0, 147.7, 82.87], [10.1, 150.3, 84.08], [10.2, 152.9, 85.30], [10.3, 155.4, 86.51],
-            [10.4, 158.0, 87.72], [10.5, 160.6, 88.95], [10.6, 163.2, 90.19], [10.7, 165.8, 91.40],
-            [10.8, 168.5, 92.65], [10.9, 171.2, 93.92], [11.0, 173.9, 95.19], [11.1, 176.6, 96.45],
-            [11.2, 179.4, 97.71], [11.3, 182.1, 98.97], [11.4, 184.9, 100.2], [11.5, 187.6, 101.5],
-            [11.6, 190.4, 102.8], [11.7, 193.3, 104.1], [11.8, 196.2, 105.4], [11.9, 199.0, 106.7],
-            [12.0, 201.9, 108.0], [12.1, 204.8, 109.4], [12.2, 207.8, 110.7], [12.3, 210.7, 112.0],
-            [12.4, 213.6, 113.3], [12.5, 216.6, 114.7], [12.6, 219.6, 116.0], [12.7, 222.6, 117.4],
-            [12.8, 225.7, 118.7], [12.9, 228.8, 120.1], [13.0, 231.9, 121.5], [13.1, 235.0, 122.9],
-            [13.2, 238.1, 124.2], [13.3, 241.2, 125.6], [13.4, 244.3, 127.0], [13.5, 247.4, 128.4],
-            [13.6, 250.6, 129.8], [13.7, 253.8, 131.2], [13.8, 257.0, 132.6], [13.9, 260.1, 134.0],
-            [14.0, 263.3, 135.4], [14.5, 279.6, 142.4], [15.0, 296.5, 149.7], [15.5, 313.9, 157.0],
-            [16.0, 331.9, 164.6], [16.5, 350.3, 172.3], [17.0, 369.4, 180.2], [17.5, 388.9, 188.1],
-            [18.0, 408.6, 196.2], [18.5, 429.0, 204.3], [19.0, 449.9, 212.7], [19.5, 471.3, 221.1],
-            [20.0, 493.2, 229.5], [21.0, 538.4, 247.1], [22.0, 585.2, 264.9], [23.0, 633.6, 283.3],
-            [24.0, 683.9, 301.8], [25.0, 736.5, 320.9], [26.0, 790.4, 340.5], [27.0, 847.0, 360.5],
-            [28.0, 904.1, 380.6], [29.0, 963.4, 401.1], [30.0, 1023, 421.7], [31.0, 1086, 443.2],
-            [32.0, 1151, 464.9], [33.0, 1217, 487.0], [34.0, 1286, 509.6], [35.0, 1356, 532.5],
-            [36.0, 1427, 555.6], [37.0, 1501, 579.3], [38.0, 1575, 603.1], [39.0, 1651, 627.1],
-            [40.0, 1730, 651.8], [41.0, 1810, 676.6], [42.0, 1892, 701.9], [43.0, 1978, 728.2],
-            [44.0, 2064, 754.4], [45.0, 2152, 780.9], [46.0, 2243, 808.2], [47.0, 2333, 835.5],
-            [48.0, 2426, 863.0], [49.0, 2521, 890.9], [50.0, 2618, 919.6], [51.0, 2717, 948.2],
-            [52.0, 2817, 977.5], [53.0, 2918, 1007], [54.0, 3020, 1036], [55.0, 3126, 1066],
-            [56.0, 3233, 1097], [57.0, 3340, 1127], [58.0, 3452, 1159], [59.0, 3563, 1190],
-            [60.0, 3676, 1222], [61.0, 3792, 1254], [62.0, 3908, 1286], [63.0, 4026, 1319],
-            [64.0, 4147, 1352], [65.0, 4268, 1386], [66.0, 4392, 1419], [67.0, 4517, 1454],
-            [68.0, 4645, 1488], [69.0, 4773, 1523], [70.0, 4905, 1558]
-        ];
-        function getLandH(Y) {
-            if (Y < 2.0 || Y > 70.0) return null;
-            for (let i = 0; i < fullTable.length; i++) {
-                if (Math.abs(fullTable[i][0] - Y) < 1e-8) return { L: fullTable[i][1], H: fullTable[i][2] };
-            }
-            for (let i = 0; i < fullTable.length-1; i++) {
-                if (Y > fullTable[i][0] && Y < fullTable[i+1][0]) {
-                    let t = (Y - fullTable[i][0]) / (fullTable[i+1][0] - fullTable[i][0]);
-                    return {
-                        L: fullTable[i][1] + t*(fullTable[i+1][1]-fullTable[i][1]),
-                        H: fullTable[i][2] + t*(fullTable[i+1][2]-fullTable[i][2])
-                    };
-                }
-            }
-            return null;
-        }
-        function roundToEven(num) {
-            if (!isFinite(num)) return num;
-            if (Math.abs(num % 1 - 0.5) < 1e-12) {
-                let intPart = num >= 0 ? Math.floor(num) : Math.ceil(num);
-                return (intPart % 2 === 0) ? intPart : intPart + (num > 0 ? 1 : -1);
-            }
-            return Math.round(num);
-        }
-        function calculateVI() {
-            const U = parseFloat(document.getElementById('v40').value);
-            const Y = parseFloat(document.getElementById('v100').value);
-            const errorDiv = document.getElementById('viErrorBox');
-            const resultDiv = document.getElementById('viResultBox');
-            errorDiv.style.display = 'none';
-            resultDiv.style.display = 'none';
-            if (isNaN(U) || isNaN(Y) || U <= 0 || Y <= 0) {
-                errorDiv.textContent = '❌ 请输入有效的正数运动粘度值。';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            if (Y < 2.0) {
-                errorDiv.textContent = '❌ 100°C 粘度必须 ≥ 2.0 mm²/s。';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            let L, H, method = '';
-            if (Y <= 70.0) {
-                let res = getLandH(Y);
-                if (!res) { errorDiv.textContent = '插值失败，请确认Y在2~70范围'; errorDiv.style.display='block'; return; }
-                L = res.L; H = res.H;
-                method = '表1插值';
-            } else {
-                L = 0.8353 * Y * Y + 14.67 * Y - 216;
-                H = 0.1684 * Y * Y + 11.85 * Y - 97;
-                method = '公式法 (Y>70)';
-            }
-            let exactVI;
-            if (U >= H) {
-                exactVI = ((L - U) / (L - H)) * 100;
-            } else {
-                const logH = Math.log10(H), logU = Math.log10(U), logY = Math.log10(Y);
-                const N = (logH - logU) / logY;
-                exactVI = ((Math.pow(10, N) - 1) / 0.00715) + 100;
-                method = 'Procedure B (U<H)';
-            }
-            const finalVI = roundToEven(exactVI);
-            document.getElementById('exactVI').innerText = exactVI.toFixed(4);
-            document.getElementById('finalVI').innerText = finalVI;
-            document.getElementById('methodBadge').innerHTML = `<span style="background:#e8eaf6;padding:2px 12px;border-radius:20px;">${method}</span>`;
-            document.getElementById('intermediateNote').innerHTML = `L = ${L.toFixed(4)} &nbsp; H = ${H.toFixed(4)}`;
-            resultDiv.style.display = 'block';
-        }
-        function fillExample() {
-            document.getElementById('v40').value = '73.30';
-            document.getElementById('v100').value = '8.86';
-            calculateVI();
-        }
-        document.getElementById('calcViBtn')?.addEventListener('click', calculateVI);
-        document.getElementById('exampleViBtn')?.addEventListener('click', fillExample);
-        document.getElementById('v40')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') calculateVI(); });
-        document.getElementById('v100')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') calculateVI(); });
-        setTimeout(() => { fillExample(); }, 80);
-    })();
-
-    // ========================= 3. 黏温计算模块 =========================
-    (function(){
-        function nuToZ(nu){ if(nu<=0) throw new Error("粘度>0"); let expTerm=Math.exp(-1.47-1.84*nu-0.51*nu*nu); let Z=nu+0.7+expTerm; return Z>1?Z:1+1e-12; }
-        function ZToNu(Z){ let u=Z-0.7; let expCorr=Math.exp(-0.7487-3.295*u+0.6119*u*u-0.3193*u*u*u); let nu=u-expCorr; return nu>0?nu:1e-6; }
-        function computeAB(T1K,nu1,T2K,nu2){ let Z1=nuToZ(nu1),Z2=nuToZ(nu2); let L1=Math.log10(Math.log10(Z1)),L2=Math.log10(Math.log10(Z2)); let logT1=Math.log10(T1K),logT2=Math.log10(T2K); let B=(L1-L2)/(logT2-logT1); let A=L1+B*logT1; return {A,B}; }
-        let currentMode='tempToVisc';
-        const modeBtns=document.querySelectorAll('.mode-vt-btn');
-        const tempToViscPanel=document.getElementById('vtTempToViscPanel');
-        const viscToTempPanel=document.getElementById('vtViscToTempPanel');
-        function setMode(mode){ currentMode=mode; if(mode==='tempToVisc'){ tempToViscPanel.style.display='block'; viscToTempPanel.style.display='none'; }else{ tempToViscPanel.style.display='none'; viscToTempPanel.style.display='block'; } modeBtns.forEach(b=>b.classList.remove('active')); document.querySelector(`.mode-vt-btn[data-vt-mode="${mode}"]`).classList.add('active'); }
-        modeBtns.forEach(btn=>btn.addEventListener('click',()=>setMode(btn.getAttribute('data-vt-mode'))));
-        function perform(){
-            let t1=parseFloat(document.getElementById('temp1').value), nu1=parseFloat(document.getElementById('visc1').value), t2=parseFloat(document.getElementById('temp2').value), nu2=parseFloat(document.getElementById('visc2').value);
-            let errDiv=document.getElementById('vtErrorMsg'), resSpan=document.getElementById('vtResultValue'), extraSpan=document.getElementById('vtExtraInfo');
-            errDiv.style.display='none';
-            if(isNaN(t1)||isNaN(nu1)||isNaN(t2)||isNaN(nu2)||nu1<=0||nu2<=0){ errDiv.textContent='请完整填写两点温度和粘度(>0)'; errDiv.style.display='block'; return; }
-            try{
-                let T1K=t1+273.15, T2K=t2+273.15;
-                let {A,B}=computeAB(T1K,nu1,T2K,nu2);
-                if(currentMode==='tempToVisc'){
-                    let targetC=parseFloat(document.getElementById('targetTemp').value);
-                    if(isNaN(targetC)) throw new Error('目标温度无效');
-                    let TK=targetC+273.15;
-                    let logT=Math.log10(TK);
-                    let L=A-B*logT;
-                    let logZ=Math.pow(10,L);
-                    let Z=Math.pow(10,logZ);
-                    let nuRes=ZToNu(Z);
-                    resSpan.innerHTML=nuRes.toFixed(4)+' cSt';
-                    extraSpan.innerHTML=`温度 ${targetC}°C → 黏度 ${nuRes.toFixed(4)} cSt<br>A=${A.toFixed(6)} B=${B.toFixed(6)}`;
-                } else {
-                    let targetVisc=parseFloat(document.getElementById('targetVisc').value);
-                    if(isNaN(targetVisc)||targetVisc<=0) throw new Error('目标粘度无效');
-                    let Ztar=nuToZ(targetVisc);
-                    let Ltar=Math.log10(Math.log10(Ztar));
-                    let logT=(A-Ltar)/B;
-                    let TK=Math.pow(10,logT);
-                    let tempC=TK-273.15;
-                    resSpan.innerHTML=tempC.toFixed(3)+' °C';
-                    extraSpan.innerHTML=`黏度 ${targetVisc} cSt → 温度 ${tempC.toFixed(3)}°C`;
-                }
-            }catch(e){ errDiv.textContent='计算失败: '+e.message; errDiv.style.display='block'; }
-        }
-        document.getElementById('calcVtBtn')?.addEventListener('click',perform);
-        setMode('tempToVisc');
-        setTimeout(()=>{ perform(); },70);
-    })();
-
-    // ========================= 4. 碱值灰分模块 (修复不显示问题) =========================
-    (function(){
-        function computeTBN() {
-            const tankWt = parseFloat(document.getElementById('tbn_tankWt')?.value);
-            const cur = parseFloat(document.getElementById('tbn_current')?.value);
-            const newOil = parseFloat(document.getElementById('tbn_newOil')?.value);
-            const target = parseFloat(document.getElementById('tbn_target')?.value);
-            const addSpan = document.getElementById('tbn_addQty');
-            const percentSpan = document.getElementById('tbn_percent');
-            const verifySpan = document.getElementById('tbn_verify');
-            const warnDiv = document.getElementById('tbn_warning');
-
-            if (isNaN(tankWt) || isNaN(cur) || isNaN(newOil) || isNaN(target) || tankWt <= 0) {
-                if(addSpan) addSpan.innerText = '无效输入';
-                if(percentSpan) percentSpan.innerText = '-- %';
-                if(verifySpan) verifySpan.innerText = '--';
-                if(warnDiv) warnDiv.style.display = 'none';
-                return;
-            }
-            const denominator = newOil - target;
-            if (Math.abs(denominator) < 1e-9) {
-                if(addSpan) addSpan.innerText = '∞ (新油碱值=目标值)';
-                if(percentSpan) percentSpan.innerText = '无法计算';
-                if(verifySpan) verifySpan.innerText = '目标不可达';
-                if(warnDiv) { warnDiv.style.display = 'block'; warnDiv.innerText = '⚠️ 新油碱值等于目标碱值，无法通过添加此油品调整。'; }
-                return;
-            }
-            let addQty = tankWt * (target - cur) / denominator;
-            let totalWt = tankWt + addQty;
-            let mixedTBN = (tankWt * cur + addQty * newOil) / totalWt;
-            let newPercent = (addQty / totalWt) * 100;
-            if(addSpan) addSpan.innerText = addQty.toFixed(3) + ' 吨';
-            if(percentSpan) percentSpan.innerText = newPercent.toFixed(4) + ' %';
-            if(verifySpan) verifySpan.innerText = mixedTBN.toFixed(4) + ' mgKOH/g';
-            if(warnDiv) {
-                if (addQty < 0) { warnDiv.style.display = 'block'; warnDiv.innerText = '⚠️ 计算结果为负，请检查目标区间是否介于当前值与新油值之间。'; }
-                else { warnDiv.style.display = 'none'; }
-            }
-        }
-
-        function computeAsh() {
-            const tankWt = parseFloat(document.getElementById('ash_tankWt')?.value);
-            const cur = parseFloat(document.getElementById('ash_current')?.value);
-            const newOil = parseFloat(document.getElementById('ash_newOil')?.value);
-            const target = parseFloat(document.getElementById('ash_target')?.value);
-            const addSpan = document.getElementById('ash_addQty');
-            const percentSpan = document.getElementById('ash_percent');
-            const verifySpan = document.getElementById('ash_verify');
-            const warnDiv = document.getElementById('ash_warning');
-
-            if (isNaN(tankWt) || isNaN(cur) || isNaN(newOil) || isNaN(target) || tankWt <= 0) {
-                if(addSpan) addSpan.innerText = '无效输入';
-                if(percentSpan) percentSpan.innerText = '-- %';
-                if(verifySpan) verifySpan.innerText = '--';
-                if(warnDiv) warnDiv.style.display = 'none';
-                return;
-            }
-            const denominator = newOil - target;
-            if (Math.abs(denominator) < 1e-9) {
-                if(addSpan) addSpan.innerText = '∞ (新油灰分=目标值)';
-                if(percentSpan) percentSpan.innerText = '无法计算';
-                if(verifySpan) verifySpan.innerText = '目标不可达';
-                if(warnDiv) { warnDiv.style.display = 'block'; warnDiv.innerText = '⚠️ 新油灰分等于目标灰分，无法通过添加此油品调整。'; }
-                return;
-            }
-            let addQty = tankWt * (target - cur) / denominator;
-            let totalWt = tankWt + addQty;
-            let mixedAsh = (tankWt * cur + addQty * newOil) / totalWt;
-            let newPercent = (addQty / totalWt) * 100;
-            if(addSpan) addSpan.innerText = addQty.toFixed(4) + ' 吨';
-            if(percentSpan) percentSpan.innerText = newPercent.toFixed(4) + ' %';
-            if(verifySpan) verifySpan.innerText = mixedAsh.toFixed(4) + ' %';
-            if(warnDiv) {
-                if (addQty < 0) { warnDiv.style.display = 'block'; warnDiv.innerText = '⚠️ 计算结果为负，请检查目标区间是否介于当前值与新油值之间。'; }
-                else { warnDiv.style.display = 'none'; }
-            }
-        }
-
-        const tbnIds = ['tbn_tankWt', 'tbn_current', 'tbn_newOil', 'tbn_target'];
-        tbnIds.forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', computeTBN); });
-        const ashIds = ['ash_tankWt', 'ash_current', 'ash_newOil', 'ash_target'];
-        ashIds.forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', computeAsh); });
-
-        computeTBN();
-        computeAsh();
-    })();
-
-    // ========================= 5. 密度计算模块 三合一 + 详细计算过程 =========================
-    (function(){
-        const subBtns=document.querySelectorAll('.subtab-btn');
-        const subPanes=document.querySelectorAll('.density-subpane');
-        subBtns.forEach(btn=>{ btn.addEventListener('click',()=>{ let target=btn.getAttribute('data-dsub'); subBtns.forEach(b=>b.classList.remove('active')); btn.classList.add('active'); subPanes.forEach(p=>p.classList.remove('active-sub')); document.getElementById(target).classList.add('active-sub'); }); });
-        
-        function buildMixInputs(){
-            let container=document.getElementById('mixOilsContainer');
-            if(!container) return;
-            container.innerHTML='';
-            const defaultDens = ['850', '880', '', ''];
-            const defaultAmt = ['20', '30', '', ''];
-            for(let i=1;i<=4;i++){
-                container.innerHTML+=`<div style="background:#f9fbfd; border-radius:1rem; padding:0.8rem; margin-bottom:0.6rem;"><div style="font-weight:600;">基础油 #${i}</div><div class="grid-2col" style="gap:0.6rem;"><input type="text" inputmode="decimal" id="mix-oil${i}-density" class="input-field" placeholder="密度 kg/m³" value="${defaultDens[i-1]}"><input type="text" inputmode="decimal" id="mix-oil${i}-amount" class="input-field" placeholder="质量/比例" value="${defaultAmt[i-1]}"></div></div>`;
-            }
-        }
-        buildMixInputs();
-
-        function computeDetailedMix() {
-            const tempC = parseFloat(document.getElementById('mix-temperature').value);
-            const resultDiv = document.getElementById('mix-result');
-            const errorDiv = document.getElementById('mix-error');
-            const mixValueSpan = document.getElementById('mix-value');
-            const detailsSpan = document.getElementById('mix-details');
-            errorDiv.style.display = 'none';
-            let oils = [];
-            for(let i=1;i<=4;i++){
-                let den = parseFloat(document.getElementById(`mix-oil${i}-density`)?.value);
-                let amt = parseFloat(document.getElementById(`mix-oil${i}-amount`)?.value);
-                if(!isNaN(den) && !isNaN(amt) && den > 0 && amt > 0){
-                    oils.push({ id:i, density:den, mass:amt });
-                }
-            }
-            if(oils.length < 1){
-                errorDiv.innerText = '至少需要输入一个基础油组分（密度和数量均为正数）';
-                errorDiv.style.display = 'block';
-                resultDiv.style.display = 'none';
-                return;
-            }
-            const totalMass = oils.reduce((s,o)=> s+o.mass,0);
-            if(totalMass <= 0){
-                errorDiv.innerText = '总质量必须大于0';
-                errorDiv.style.display = 'block';
-                resultDiv.style.display = 'none';
-                return;
-            }
-            oils.forEach(o => { o.massFraction = o.mass / totalMass; o.percent = (o.massFraction * 100).toFixed(2); });
-            let rhoWeighted = oils.reduce((s,o)=> s + o.massFraction * o.density, 0);
-            let totalVolume = oils.reduce((s,o)=> s + (o.mass / o.density), 0);
-            let rhoVolumetric = totalMass / totalVolume;
-            let diff = Math.abs(rhoWeighted - rhoVolumetric);
-            
-            let detailsHtml = `<strong>📌 测量温度: ${isNaN(tempC) ? '—' : tempC.toFixed(1)}°C</strong><br><br>`;
-            detailsHtml += `<strong>组分信息:</strong><br>`;
-            oils.forEach(o => {
-                detailsHtml += `基础油 #${o.id}: ρ=${o.density} kg/m³, m=${o.mass} (${o.percent}%)<br>`;
+        // ======================= 黏度计算下的二级Tab切换 =======================
+        const subTabBtns = document.querySelectorAll('.sub-tab-btn');
+        const subPanes = document.querySelectorAll('.sub-pane');
+        subTabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetSub = btn.getAttribute('data-sub');
+                subTabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                subPanes.forEach(pane => pane.classList.remove('active-sub'));
+                document.getElementById(targetSub).classList.add('active-sub');
             });
-            detailsHtml += `<br><strong>方法1: 质量加权平均法</strong><br>`;
-            detailsHtml += `ρ<sub>mix</sub> = Σ(w<sub>i</sub> × ρ<sub>i</sub>) = ${rhoWeighted.toFixed(2)} kg/m³<br><br>`;
-            detailsHtml += `<strong>方法2: 体积加权法(推荐)</strong><br>`;
-            oils.forEach(o => {
-                let vol = o.mass / o.density;
-                detailsHtml += `V<sub>${o.id}</sub> = ${o.mass}/${o.density} = ${vol.toFixed(6)} m³<br>`;
-            });
-            detailsHtml += `V<sub>total</sub> = ${totalVolume.toFixed(6)} m³<br>`;
-            detailsHtml += `ρ<sub>mix</sub> = ${totalMass}/${totalVolume.toFixed(6)} = ${rhoVolumetric.toFixed(2)} kg/m³<br><br>`;
-            detailsHtml += `<strong>⭐ 推荐值: ${rhoVolumetric.toFixed(2)} kg/m³</strong><br>`;
-            detailsHtml += `两种方法差异: ${diff.toFixed(2)} kg/m³`;
-            
-            mixValueSpan.innerText = rhoVolumetric.toFixed(2);
-            detailsSpan.innerHTML = detailsHtml;
-            resultDiv.style.display = 'block';
-        }
-        
-        document.getElementById('calcMixDensityBtn')?.addEventListener('click', computeDetailedMix);
-        document.getElementById('clearMixBtn')?.addEventListener('click', ()=>{
-            for(let i=1;i<=4;i++){
-                let d = document.getElementById(`mix-oil${i}-density`);
-                let a = document.getElementById(`mix-oil${i}-amount`);
-                if(d) d.value = '';
-                if(a) a.value = '';
-            }
-            document.getElementById('mix-result').style.display = 'none';
-            document.getElementById('mix-error').style.display = 'none';
         });
-        
-        function calcRatio(){
-            let rhoMix=parseFloat(document.getElementById('ratio-mix-density').value), r1=parseFloat(document.getElementById('ratio-oil1-density').value), r2=parseFloat(document.getElementById('ratio-oil2-density').value);
-            if(isNaN(rhoMix)||isNaN(r1)||isNaN(r2)||r1===r2){ document.getElementById('ratio-error').innerText='无效密度或密度相同'; document.getElementById('ratio-error').style.display='block'; return; }
-            let invMix=1/rhoMix, inv1=1/r1, inv2=1/r2; let w1=(invMix-inv2)/(inv1-inv2); let w2=1-w1; let p1=w1*100, p2=w2*100;
-            document.getElementById('ratio-percent1').innerText=p1.toFixed(2); document.getElementById('ratio-percent2').innerText=p2.toFixed(2);
-            document.getElementById('ratio-details').innerHTML=`w1=${w1.toFixed(6)} 验证密度= ${1/(w1/r1+w2/r2).toFixed(2)} kg/m³`;
-            document.getElementById('ratio-result').style.display='block'; document.getElementById('ratio-error').style.display='none';
-        }
-        document.getElementById('calcRatioBtn')?.addEventListener('click',calcRatio);
-        document.getElementById('clearRatioBtn')?.addEventListener('click',()=>{ document.getElementById('ratio-mix-density').value=''; document.getElementById('ratio-oil1-density').value=''; document.getElementById('ratio-oil2-density').value=''; document.getElementById('ratio-result').style.display='none'; });
-        setTimeout(calcRatio,100);
-        
-        function calcUnknown(){
-            let rhoMix=parseFloat(document.getElementById('unknown-mix-density').value), rho1=parseFloat(document.getElementById('unknown-oil1-density').value), m1=parseFloat(document.getElementById('unknown-oil1-amount').value), m2=parseFloat(document.getElementById('unknown-oil2-amount').value);
-            if(isNaN(rhoMix)||isNaN(rho1)||isNaN(m1)||isNaN(m2)||m1<=0||m2<=0){ document.getElementById('unknown-error').innerText='请完整填写除待求密度外的值'; document.getElementById('unknown-error').style.display='block'; return; }
-            let total=m1+m2; let w1=m1/total, w2=m2/total; let invMix=1/rhoMix, inv1=1/rho1; let rho2 = w2/(invMix - w1*inv1);
-            if(rho2<=0) throw new Error('计算异常');
-            document.getElementById('unknown-density').innerHTML=rho2.toFixed(2);
-            document.getElementById('unknown-details').innerHTML=`基础油#1占比${(w1*100).toFixed(2)}%  #2占比${(w2*100).toFixed(2)}%`;
-            document.getElementById('unknown-result').style.display='block'; document.getElementById('unknown-error').style.display='none';
-        }
-        document.getElementById('calcUnknownBtn')?.addEventListener('click',calcUnknown);
-        document.getElementById('clearUnknownBtn')?.addEventListener('click',()=>{ document.getElementById('unknown-mix-density').value=''; document.getElementById('unknown-oil1-density').value=''; document.getElementById('unknown-oil1-amount').value=''; document.getElementById('unknown-oil2-amount').value=''; document.getElementById('unknown-oil2-density').value=''; document.getElementById('unknown-result').style.display='none'; });
-        setTimeout(calcUnknown,100);
-        setTimeout(()=>{ computeDetailedMix(); }, 150);
+
+        // ========== 1. 混合黏度模块 (完整保留) ==========
+        (function blendModule() {
+            let weightInputs = [], viscInputs = [];
+            const defaultWeights = [20,20,20,10,30];
+            const defaultViscs = [15,25,35,45,45];
+            function computeCValue(v) { if(v<=0.4) return NaN; return Math.log(Math.log(v+0.6)); }
+            function viscosityFromC(c) { if(isNaN(c)) return NaN; return Math.exp(Math.exp(c))-0.6; }
+            function calculateBlend(weights, viscosities) {
+                let totalW = weights.reduce((s,w)=> s+(w>0?w:0),0);
+                if(totalW===0) return {valid:false, errorMsg:"总重量为零", totalWeight:0};
+                let sumC=0, details=[], hasInvalid=false, errMsg="";
+                for(let i=0;i<weights.length;i++){
+                    let w=weights[i], v=viscosities[i];
+                    let ratio = totalW>0? w/totalW:0;
+                    let cVal=null, cValid=false;
+                    if(w>0){
+                        if(v>0.4){
+                            cVal=computeCValue(v);
+                            if(isFinite(cVal)){ cValid=true; sumC+=ratio*cVal; }
+                            else { hasInvalid=true; errMsg=`组分${i+1}黏度无效`; }
+                        } else { hasInvalid=true; errMsg=`组分${i+1}黏度≤0.4`; }
+                    }
+                    details.push({weight:w, visc:v, ratio, cValue:cVal, cValid});
+                }
+                if(hasInvalid) return {valid:false, errorMsg:errMsg, totalWeight:totalW, mixC:NaN, mixViscosity:NaN, details, sumRatios:1};
+                let mixC=sumC;
+                let mixVisc=viscosityFromC(mixC);
+                return {valid:isFinite(mixVisc), mixViscosity:mixVisc, mixC, totalWeight:totalW, details, sumRatios:1, errorMsg:""};
+            }
+            function renderUI() {
+                const grid = document.getElementById('componentsGrid');
+                if(!grid) return;
+                grid.innerHTML='';
+                weightInputs=[]; viscInputs=[];
+                for(let i=0;i<5;i++){
+                    const card = document.createElement('div');
+                    card.className = 'comp-card';
+                    card.innerHTML = `<div style="font-weight:700; margin-bottom:6px;">📌 组分 ${i+1}</div>
+                        <div class="input-row"><label>重量 (份)</label><input type="text" inputmode="decimal" id="weight_${i}" class="input-field" placeholder="例如20"></div>
+                        <div class="input-row"><label>黏度 ν (cSt)</label><input type="text" inputmode="decimal" id="visc_${i}" class="input-field" placeholder=">0.4"></div>`;
+                    grid.appendChild(card);
+                    weightInputs.push(card.querySelector(`#weight_${i}`));
+                    viscInputs.push(card.querySelector(`#visc_${i}`));
+                }
+            }
+            function getValues() { let w=[],v=[]; for(let i=0;i<5;i++){ w.push(parseFloat(weightInputs[i]?.value)||0); v.push(parseFloat(viscInputs[i]?.value)||0); } return {weights:w, viscosities:v}; }
+            function performCalc(){
+                const {weights, viscosities}=getValues();
+                const res = calculateBlend(weights, viscosities);
+                document.getElementById('totalWeight').innerText = res.totalWeight.toFixed(4);
+                document.getElementById('finalViscosity').innerText = res.valid ? res.mixViscosity.toFixed(4) : '—';
+                document.getElementById('mixC_span').innerText = (res.valid && !isNaN(res.mixC))? res.mixC.toFixed(6):'—';
+                const warnDiv = document.getElementById('blendWarningMsg');
+                if(!res.valid || res.totalWeight===0){ warnDiv.style.display='block'; warnDiv.innerText=res.errorMsg||'计算无效'; }
+                else warnDiv.style.display='none';
+                const tbody=document.getElementById('tableBody');
+                if(!res.details){ tbody.innerHTML='<tr><td colspan="5">无数据</td></tr>'; return; }
+                let html='';
+                for(let i=0;i<res.details.length;i++){
+                    let d=res.details[i];
+                    let ratioP = (d.ratio*100).toFixed(2)+'%';
+                    let cDisp = d.cValid ? d.cValue?.toFixed(6):'—';
+                    html+=`<tr><td style="font-weight:600;">组分 ${i+1}</td><td>${d.weight.toFixed(4)}</td><td>${d.visc.toFixed(4)}</td><td>${ratioP}</td><td>${cDisp}</td></tr>`;
+                }
+                html+=`<tr class="mix-row"><td colspan="3" style="text-align:right;">质量比例总和</td><td colspan="2">${(res.sumRatios).toFixed(6)}</td></tr>`;
+                tbody.innerHTML=html;
+            }
+            function loadExample(){ for(let i=0;i<5;i++){ weightInputs[i].value=defaultWeights[i]; viscInputs[i].value=defaultViscs[i]; } performCalc(); }
+            function resetForm(){ for(let i=0;i<5;i++){ weightInputs[i].value=''; viscInputs[i].value=''; } document.getElementById('totalWeight').innerText='0.00'; document.getElementById('finalViscosity').innerText='—'; document.getElementById('mixC_span').innerText='—'; document.getElementById('blendWarningMsg').style.display='none'; document.getElementById('tableBody').innerHTML='<tr><td colspan="5">清空完成</td></tr>'; }
+            renderUI();
+            document.getElementById('calcBlendBtn')?.addEventListener('click',performCalc);
+            document.getElementById('resetBlendBtn')?.addEventListener('click',resetForm);
+            document.getElementById('loadExampleBtn')?.addEventListener('click',loadExample);
+            setTimeout(()=>{ loadExample(); },80);
+        })();
+
+        // ========== 2. 黏度指数 VI 模块 (完整ASTM D2270表) ==========
+        (function(){
+            const fullTable = [
+                [2.00,7.994,6.394],[2.10,8.640,6.894],[2.20,9.309,7.410],[2.30,10.00,7.944],[2.40,10.71,8.496],[2.50,11.45,9.063],[2.60,12.21,9.647],[2.70,13.00,10.25],[2.80,13.80,10.87],[2.90,14.63,11.50],
+                [3.00,15.49,12.15],[3.10,16.36,12.82],[3.20,17.26,13.51],[3.30,18.18,14.21],[3.40,19.12,14.93],[3.50,20.09,15.66],[3.60,21.08,16.42],[3.70,22.09,17.19],[3.80,23.13,17.97],[3.90,24.19,18.77],
+                [4.00,25.32,19.56],[4.10,26.50,20.37],[4.20,27.75,21.21],[4.30,29.07,22.05],[4.40,30.48,22.92],[4.50,31.96,23.81],[4.60,33.52,24.71],[4.70,35.13,25.63],[4.80,36.79,26.57],[4.90,38.50,27.53],
+                [5.00,40.23,28.49],[5.10,41.99,29.46],[5.20,43.76,30.43],[5.30,45.53,31.40],[5.40,47.31,32.37],[5.50,49.09,33.34],[5.60,50.87,34.32],[5.70,52.64,35.29],[5.80,54.42,36.26],[5.90,56.20,37.23],
+                [6.00,57.97,38.19],[6.10,59.74,39.17],[6.20,61.52,40.15],[6.30,63.32,41.13],[6.40,65.18,42.14],[6.50,67.12,43.18],[6.60,69.16,44.24],[6.70,71.29,45.33],[6.80,73.48,46.44],[6.90,75.72,47.51],
+                [7.00,78.00,48.57],[7.10,80.25,49.61],[7.20,82.39,50.69],[7.30,84.53,51.78],[7.40,86.66,52.88],[7.50,88.85,53.98],[7.60,91.04,55.09],[7.70,93.20,56.20],[7.80,95.43,57.31],[7.90,97.72,58.45],
+                [8.00,100.0,59.60],[8.10,102.3,60.74],[8.20,104.6,61.89],[8.30,106.9,63.05],[8.40,109.2,64.18],[8.50,111.5,65.32],[8.60,113.9,66.48],[8.70,116.2,67.64],[8.80,118.5,68.79],[8.90,120.9,69.94],
+                [9.00,123.3,71.10],[9.10,125.7,72.27],[9.20,128.0,73.42],[9.30,130.4,74.57],[9.40,132.8,75.73],[9.50,135.3,76.91],[9.60,137.7,78.08],[9.70,140.1,79.27],[9.80,142.7,80.46],[9.90,145.2,81.67],
+                [10.0,147.7,82.87],[10.1,150.3,84.08],[10.2,152.9,85.30],[10.3,155.4,86.51],[10.4,158.0,87.72],[10.5,160.6,88.95],[10.6,163.2,90.19],[10.7,165.8,91.40],[10.8,168.5,92.65],[10.9,171.2,93.92],
+                [11.0,173.9,95.19],[11.1,176.6,96.45],[11.2,179.4,97.71],[11.3,182.1,98.97],[11.4,184.9,100.2],[11.5,187.6,101.5],[11.6,190.4,102.8],[11.7,193.3,104.1],[11.8,196.2,105.4],[11.9,199.0,106.7],
+                [12.0,201.9,108.0],[12.1,204.8,109.4],[12.2,207.8,110.7],[12.3,210.7,112.0],[12.4,213.6,113.3],[12.5,216.6,114.7],[12.6,219.6,116.0],[12.7,222.6,117.4],[12.8,225.7,118.7],[12.9,228.8,120.1],
+                [13.0,231.9,121.5],[13.1,235.0,122.9],[13.2,238.1,124.2],[13.3,241.2,125.6],[13.4,244.3,127.0],[13.5,247.4,128.4],[13.6,250.6,129.8],[13.7,253.8,131.2],[13.8,257.0,132.6],[13.9,260.1,134.0],
+                [14.0,263.3,135.4],[14.5,279.6,142.4],[15.0,296.5,149.7],[15.5,313.9,157.0],[16.0,331.9,164.6],[16.5,350.3,172.3],[17.0,369.4,180.2],[17.5,388.9,188.1],[18.0,408.6,196.2],[18.5,429.0,204.3],
+                [19.0,449.9,212.7],[19.5,471.3,221.1],[20.0,493.2,229.5],[21.0,538.4,247.1],[22.0,585.2,264.9],[23.0,633.6,283.3],[24.0,683.9,301.8],[25.0,736.5,320.9],[26.0,790.4,340.5],[27.0,847.0,360.5],
+                [28.0,904.1,380.6],[29.0,963.4,401.1],[30.0,1023,421.7],[31.0,1086,443.2],[32.0,1151,464.9],[33.0,1217,487.0],[34.0,1286,509.6],[35.0,1356,532.5],[36.0,1427,555.6],[37.0,1501,579.3],
+                [38.0,1575,603.1],[39.0,1651,627.1],[40.0,1730,651.8],[41.0,1810,676.6],[42.0,1892,701.9],[43.0,1978,728.2],[44.0,2064,754.4],[45.0,2152,780.9],[46.0,2243,808.2],[47.0,2333,835.5],
+                [48.0,2426,863.0],[49.0,2521,890.9],[50.0,2618,919.6],[51.0,2717,948.2],[52.0,2817,977.5],[53.0,2918,1007],[54.0,3020,1036],[55.0,3126,1066],[56.0,3233,1097],[57.0,3340,1127],
+                [58.0,3452,1159],[59.0,3563,1190],[60.0,3676,1222],[61.0,3792,1254],[62.0,3908,1286],[63.0,4026,1319],[64.0,4147,1352],[65.0,4268,1386],[66.0,4392,1419],[67.0,4517,1454],[68.0,4645,1488],[69.0,4773,1523],[70.0,4905,1558]
+            ];
+            function getLandH(Y) { if(Y<2||Y>70) return null; for(let i=0;i<fullTable.length;i++) if(Math.abs(fullTable[i][0]-Y)<1e-8) return{L:fullTable[i][1],H:fullTable[i][2]}; for(let i=0;i<fullTable.length-1;i++) if(Y>fullTable[i][0] && Y<fullTable[i+1][0]){ let t=(Y-fullTable[i][0])/(fullTable[i+1][0]-fullTable[i][0]); return{L:fullTable[i][1]+t*(fullTable[i+1][1]-fullTable[i][1]), H:fullTable[i][2]+t*(fullTable[i+1][2]-fullTable[i][2])}; } return null; }
+            function roundToEven(num){ if(!isFinite(num)) return num; if(Math.abs(num%1-0.5)<1e-12){ let intPart=num>=0?Math.floor(num):Math.ceil(num); return (intPart%2===0)?intPart:intPart+(num>0?1:-1); } return Math.round(num); }
+            function calculateVI(){
+                const U=parseFloat(document.getElementById('v40').value), Y=parseFloat(document.getElementById('v100').value);
+                const errorDiv=document.getElementById('viErrorBox'), resultDiv=document.getElementById('viResultBox');
+                errorDiv.style.display='none'; resultDiv.style.display='none';
+                if(isNaN(U)||isNaN(Y)||U<=0||Y<=0){ errorDiv.textContent='❌ 请输入有效的正数运动粘度值。'; errorDiv.style.display='block'; return; }
+                if(Y<2.0){ errorDiv.textContent='❌ 100°C 粘度必须 ≥ 2.0 mm²/s。'; errorDiv.style.display='block'; return; }
+                let L,H,method='';
+                if(Y<=70.0){ let res=getLandH(Y); if(!res){ errorDiv.textContent='插值失败'; errorDiv.style.display='block'; return; } L=res.L; H=res.H; method='表1插值'; }
+                else { L=0.8353*Y*Y+14.67*Y-216; H=0.1684*Y*Y+11.85*Y-97; method='公式法 (Y>70)'; }
+                let exactVI; if(U>=H) exactVI=((L-U)/(L-H))*100; else { const logH=Math.log10(H), logU=Math.log10(U), logY=Math.log10(Y); const N=(logH-logU)/logY; exactVI=((Math.pow(10,N)-1)/0.00715)+100; method='Procedure B (U<H)'; }
+                const finalVI=roundToEven(exactVI);
+                document.getElementById('exactVI').innerText=exactVI.toFixed(4);
+                document.getElementById('finalVI').innerText=finalVI;
+                document.getElementById('methodBadge').innerHTML=`<span style="background:#e8eaf6;padding:2px 12px;border-radius:20px;">${method}</span>`;
+                document.getElementById('intermediateNote').innerHTML=`L = ${L.toFixed(4)} &nbsp; H = ${H.toFixed(4)}`;
+                resultDiv.style.display='block';
+            }
+            document.getElementById('calcViBtn')?.addEventListener('click',calculateVI);
+            document.getElementById('exampleViBtn')?.addEventListener('click',()=>{ document.getElementById('v40').value='73.30'; document.getElementById('v100').value='8.86'; calculateVI(); });
+            setTimeout(calculateVI,100);
+        })();
+
+        // ========== 3. 双组分反算模块 (完整保留原黏度小工具逻辑，仅包裹样式) ==========
+        (function(){
+            function computeC(visc){ if(visc<=0.4) return NaN; const inside=visc+0.6; const lnIn=Math.log(inside); if(lnIn<=0) return NaN; return Math.log(lnIn); }
+            function viscosityFromC(cVal){ if(isNaN(cVal)) return NaN; return Math.exp(Math.exp(cVal))-0.6; }
+            function mixViscosityByRatio(viscA, viscB, x){ const cA=computeC(viscA), cB=computeC(viscB); if(isNaN(cA)||isNaN(cB)) return NaN; const cMix = x*cA + (1-x)*cB; return viscosityFromC(cMix); }
+            function solveRatio(viscA, viscB, target, tol=1e-10){
+                if(viscA<=0.4 || viscB<=0.4) return {error:"黏度必须 >0.4 cSt"};
+                if(target<=0.4) return {error:"目标黏度必须 >0.4 cSt"};
+                const cA=computeC(viscA), cB=computeC(viscB);
+                if(isNaN(cA)||isNaN(cB)) return {error:"黏度数值无效"};
+                let lowX=0, highX=1;
+                let vLow=mixViscosityByRatio(viscA, viscB, lowX);
+                let vHigh=mixViscosityByRatio(viscA, viscB, highX);
+                if(isNaN(vLow)||isNaN(vHigh)) return {error:"边界计算失败"};
+                let minV=Math.min(vLow,vHigh), maxV=Math.max(vLow,vHigh);
+                if(target<minV-1e-8 || target>maxV+1e-8) return {error:`目标黏度 ${target} 不在可调和范围 [${minV.toFixed(4)}, ${maxV.toFixed(4)}] 内`};
+                let increasing = (vHigh > vLow);
+                let x=0.5;
+                for(let iter=0;iter<200;iter++){ let vMix=mixViscosityByRatio(viscA, viscB, x); if(isNaN(vMix)) return {error:"计算发散"}; if(Math.abs(vMix-target)<tol) break; if(increasing){ if(vMix<target) lowX=x; else highX=x; } else { if(vMix>target) lowX=x; else highX=x; } x=(lowX+highX)/2; }
+                let finalX=x; let finalV=mixViscosityByRatio(viscA, viscB, finalX);
+                return {ratioA:finalX, ratioB:1-finalX, viscosity:finalV, error:null};
+            }
+            let lastRatioA = null, lastViscA = null, lastViscB = null, lastTarget = null;
+            function updateDisplayByTotalParts() {
+                if(lastRatioA === null){ document.getElementById('ratioA').innerText = '—'; document.getElementById('ratioB').innerText = '—'; document.getElementById('weightAdvice').innerText = '请先点击计算'; document.getElementById('checkVisc').innerText = '—'; document.getElementById('deviationDisplay').innerText = '—'; return; }
+                let totalParts = parseFloat(document.getElementById('totalPartsInput').value);
+                if(isNaN(totalParts) || totalParts <= 0) totalParts = 100;
+                const weightA = (lastRatioA * totalParts).toFixed(4);
+                const weightB = ((1-lastRatioA) * totalParts).toFixed(4);
+                document.getElementById('weightAdvice').innerHTML = `组分 A : ${weightA} 份 &nbsp;|&nbsp; 组分 B : ${weightB} 份 (总份 ${totalParts.toFixed(4)})`;
+                if(lastViscA !== null && lastViscB !== null && lastRatioA !== null){
+                    const calcVisc = mixViscosityByRatio(lastViscA, lastViscB, lastRatioA);
+                    if(!isNaN(calcVisc) && isFinite(calcVisc)){
+                        document.getElementById('checkVisc').innerHTML = `${calcVisc.toFixed(6)} cSt`;
+                        const target = lastTarget;
+                        const deviation = Math.abs(calcVisc - target);
+                        const deviationText = `${deviation.toFixed(8)} cSt ${deviation<1e-6 ? '✓ 精准' : ''}`;
+                        document.getElementById('deviationDisplay').innerHTML = deviationText + (deviation<1e-5 ? ' <span class="verify-pass">验证通过</span>' : '');
+                    } else { document.getElementById('checkVisc').innerText = '计算失败'; document.getElementById('deviationDisplay').innerText = '—'; }
+                }
+            }
+            function computeInverseAndStore() {
+                const viscA = parseFloat(document.getElementById('invViscA').value);
+                const viscB = parseFloat(document.getElementById('invViscB').value);
+                const target = parseFloat(document.getElementById('invTarget').value);
+                const warnDiv = document.getElementById('invWarning');
+                warnDiv.style.display = 'none';
+                if(isNaN(viscA)||isNaN(viscB)||isNaN(target)||viscA<=0||viscB<=0||target<=0){ warnDiv.style.display='block'; warnDiv.innerText='⚠️ 请输入有效的正数黏度值'; return; }
+                if(viscA===viscB){
+                    if(Math.abs(target-viscA)<1e-6){ lastRatioA = 0.5; lastViscA = viscA; lastViscB = viscB; lastTarget = target; document.getElementById('ratioA').innerHTML = `任意比例 (两油黏度相等) 建议 50%`; document.getElementById('ratioB').innerHTML = `任意比例 50%`; updateDisplayByTotalParts(); } 
+                    else { warnDiv.style.display='block'; warnDiv.innerText='⚠️ 两种基础油黏度相等，目标黏度必须等于该值。'; }
+                    return;
+                }
+                const result = solveRatio(viscA, viscB, target);
+                if(result.error){ warnDiv.style.display='block'; warnDiv.innerText='⚠️ '+result.error; return; }
+                lastRatioA = result.ratioA; lastViscA = viscA; lastViscB = viscB; lastTarget = target;
+                const percentA = (result.ratioA*100).toFixed(4), percentB = ((1-result.ratioA)*100).toFixed(4);
+                document.getElementById('ratioA').innerHTML = `${percentA} %  (质量分数 ${result.ratioA.toFixed(6)})`;
+                document.getElementById('ratioB').innerHTML = `${percentB} %  (质量分数 ${(1-result.ratioA).toFixed(6)})`;
+                updateDisplayByTotalParts();
+            }
+            document.getElementById('calcInverseBtn')?.addEventListener('click', computeInverseAndStore);
+            document.getElementById('totalPartsInput')?.addEventListener('input', updateDisplayByTotalParts);
+            document.getElementById('quickExampleInvBtn')?.addEventListener('click', () => {
+                document.getElementById('invViscA').value = '30'; document.getElementById('invViscB').value = '80'; document.getElementById('invTarget').value = '68'; document.getElementById('totalPartsInput').value = '80';
+                computeInverseAndStore();
+            });
+            setTimeout(() => { computeInverseAndStore(); }, 120);
+        })();
+
+        // ========== 碱值及灰分模块 ==========
+        (function(){
+            function computeTBN() {
+                const tankWt = parseFloat(document.getElementById('tbn_tankWt')?.value), cur = parseFloat(document.getElementById('tbn_current')?.value), newOil = parseFloat(document.getElementById('tbn_newOil')?.value), target = parseFloat(document.getElementById('tbn_target')?.value);
+                if (isNaN(tankWt) || isNaN(cur) || isNaN(newOil) || isNaN(target) || tankWt <= 0) { if(document.getElementById('tbn_addQty')) document.getElementById('tbn_addQty').innerText='无效输入'; return; }
+                const denominator = newOil - target;
+                if (Math.abs(denominator) < 1e-9) { document.getElementById('tbn_addQty').innerText='∞ (新油碱值=目标值)'; return; }
+                let addQty = tankWt * (target - cur) / denominator; let totalWt = tankWt + addQty; let mixedTBN = (tankWt * cur + addQty * newOil) / totalWt; let newPercent = (addQty / totalWt) * 100;
+                document.getElementById('tbn_addQty').innerText = addQty.toFixed(3) + ' 吨'; document.getElementById('tbn_percent').innerText = newPercent.toFixed(4) + ' %'; document.getElementById('tbn_verify').innerText = mixedTBN.toFixed(4) + ' mgKOH/g';
+                const warnDiv = document.getElementById('tbn_warning'); if(warnDiv){ if(addQty<0) { warnDiv.style.display='block'; warnDiv.innerText='⚠️ 计算结果为负，请检查目标区间';} else warnDiv.style.display='none';}
+            }
+            function computeAsh() {
+                const tankWt = parseFloat(document.getElementById('ash_tankWt')?.value), cur = parseFloat(document.getElementById('ash_current')?.value), newOil = parseFloat(document.getElementById('ash_newOil')?.value), target = parseFloat(document.getElementById('ash_target')?.value);
+                if (isNaN(tankWt) || isNaN(cur) || isNaN(newOil) || isNaN(target) || tankWt <= 0) return;
+                const denominator = newOil - target;
+                if (Math.abs(denominator) < 1e-9) { document.getElementById('ash_addQty').innerText='∞ (新油灰分=目标值)'; return; }
+                let addQty = tankWt * (target - cur) / denominator; let totalWt = tankWt + addQty; let mixedAsh = (tankWt * cur + addQty * newOil) / totalWt; let newPercent = (addQty / totalWt) * 100;
+                document.getElementById('ash_addQty').innerText = addQty.toFixed(4) + ' 吨'; document.getElementById('ash_percent').innerText = newPercent.toFixed(4) + ' %'; document.getElementById('ash_verify').innerText = mixedAsh.toFixed(4) + ' %';
+                const warnDiv = document.getElementById('ash_warning'); if(warnDiv){ if(addQty<0) { warnDiv.style.display='block'; warnDiv.innerText='⚠️ 计算结果为负';} else warnDiv.style.display='none';}
+            }
+            ['tbn_tankWt','tbn_current','tbn_newOil','tbn_target'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', computeTBN); });
+            ['ash_tankWt','ash_current','ash_newOil','ash_target'].forEach(id => { const el = document.getElementById(id); if(el) el.addEventListener('input', computeAsh); });
+            computeTBN(); computeAsh();
+        })();
+
+        // ========== 密度计算模块 ==========
+        (function(){
+            const subBtns=document.querySelectorAll('.subtab-btn'); const subPanes=document.querySelectorAll('.density-subpane');
+            subBtns.forEach(btn=>{ btn.addEventListener('click',()=>{ let target=btn.getAttribute('data-dsub'); subBtns.forEach(b=>b.classList.remove('active')); btn.classList.add('active'); subPanes.forEach(p=>p.classList.remove('active-sub')); document.getElementById(target).classList.add('active-sub'); }); });
+            function buildMixInputs(){ let container=document.getElementById('mixOilsContainer'); if(!container) return; container.innerHTML=''; const defaultDens = ['850', '880', '', '']; const defaultAmt = ['20', '30', '', '']; for(let i=1;i<=4;i++){ container.innerHTML+=`<div style="background:#f9fbfd; border-radius:1rem; padding:0.8rem; margin-bottom:0.6rem;"><div style="font-weight:600;">基础油 #${i}</div><div class="grid-2col" style="gap:0.6rem;"><input type="text" inputmode="decimal" id="mix-oil${i}-density" class="input-field" placeholder="密度 kg/m³" value="${defaultDens[i-1]}"><input type="text" inputmode="decimal" id="mix-oil${i}-amount" class="input-field" placeholder="质量/比例" value="${defaultAmt[i-1]}"></div></div>`; } }
+            buildMixInputs();
+            function computeDetailedMix(){ let tempC=parseFloat(document.getElementById('mix-temperature').value); let oils=[]; for(let i=1;i<=4;i++){ let den=parseFloat(document.getElementById(`mix-oil${i}-density`)?.value), amt=parseFloat(document.getElementById(`mix-oil${i}-amount`)?.value); if(!isNaN(den) && !isNaN(amt) && den>0 && amt>0) oils.push({id:i, density:den, mass:amt}); } if(oils.length<1){ document.getElementById('mix-error').innerText='至少需要输入一个基础油'; document.getElementById('mix-error').style.display='block'; return; } let totalMass=oils.reduce((s,o)=>s+o.mass,0); let totalVolume=oils.reduce((s,o)=>s+(o.mass/o.density),0); let rhoVolumetric=totalMass/totalVolume; document.getElementById('mix-value').innerText=rhoVolumetric.toFixed(2); let detailsHtml=`测量温度: ${isNaN(tempC)?'—':tempC.toFixed(1)}°C<br>总质量 ${totalMass.toFixed(4)} kg<br>总体积 ${totalVolume.toFixed(6)} m³<br>混合密度 = ${rhoVolumetric.toFixed(2)} kg/m³`; document.getElementById('mix-details').innerHTML=detailsHtml; document.getElementById('mix-result').style.display='block'; document.getElementById('mix-error').style.display='none'; }
+            document.getElementById('calcMixDensityBtn')?.addEventListener('click',computeDetailedMix); document.getElementById('clearMixBtn')?.addEventListener('click',()=>{ for(let i=1;i<=4;i++){ let d=document.getElementById(`mix-oil${i}-density`), a=document.getElementById(`mix-oil${i}-amount`); if(d) d.value=''; if(a) a.value=''; } document.getElementById('mix-result').style.display='none'; });
+            function calcRatio(){ let rhoMix=parseFloat(document.getElementById('ratio-mix-density').value), r1=parseFloat(document.getElementById('ratio-oil1-density').value), r2=parseFloat(document.getElementById('ratio-oil2-density').value); if(isNaN(rhoMix)||isNaN(r1)||isNaN(r2)||r1===r2){ document.getElementById('ratio-error').innerText='无效密度'; document.getElementById('ratio-error').style.display='block'; return; } let invMix=1/rhoMix, inv1=1/r1, inv2=1/r2; let w1=(invMix-inv2)/(inv1-inv2); let p1=w1*100; document.getElementById('ratio-percent1').innerText=p1.toFixed(2); document.getElementById('ratio-percent2').innerText=(100-p1).toFixed(2); document.getElementById('ratio-result').style.display='block'; document.getElementById('ratio-error').style.display='none'; }
+            document.getElementById('calcRatioBtn')?.addEventListener('click',calcRatio); document.getElementById('clearRatioBtn')?.addEventListener('click',()=>{ document.getElementById('ratio-mix-density').value=''; document.getElementById('ratio-oil1-density').value=''; document.getElementById('ratio-oil2-density').value=''; document.getElementById('ratio-result').style.display='none'; });
+            function calcUnknown(){ let rhoMix=parseFloat(document.getElementById('unknown-mix-density').value), rho1=parseFloat(document.getElementById('unknown-oil1-density').value), m1=parseFloat(document.getElementById('unknown-oil1-amount').value), m2=parseFloat(document.getElementById('unknown-oil2-amount').value); if(isNaN(rhoMix)||isNaN(rho1)||isNaN(m1)||isNaN(m2)||m1<=0||m2<=0){ document.getElementById('unknown-error').innerText='请完整填写'; document.getElementById('unknown-error').style.display='block'; return; } let total=m1+m2; let w1=m1/total, w2=m2/total; let invMix=1/rhoMix, inv1=1/rho1; let rho2 = w2/(invMix - w1*inv1); if(rho2<=0) throw new Error('异常'); document.getElementById('unknown-density').innerHTML=rho2.toFixed(2); document.getElementById('unknown-details').innerHTML=`占比 #1:${(w1*100).toFixed(2)}% #2:${(w2*100).toFixed(2)}%`; document.getElementById('unknown-result').style.display='block'; document.getElementById('unknown-error').style.display='none'; }
+            document.getElementById('calcUnknownBtn')?.addEventListener('click',calcUnknown); document.getElementById('clearUnknownBtn')?.addEventListener('click',()=>{ document.getElementById('unknown-mix-density').value=''; document.getElementById('unknown-oil1-density').value=''; document.getElementById('unknown-oil1-amount').value=''; document.getElementById('unknown-oil2-amount').value=''; document.getElementById('unknown-oil2-density').value=''; document.getElementById('unknown-result').style.display='none'; });
+            setTimeout(computeDetailedMix,100);
+        })();
     })();
 </script>
 </body>
